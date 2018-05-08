@@ -1,62 +1,95 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 
-<style>
-.chart rect {
-    fill: steelblue;
-}
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/data.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
 
-.chart text {
-  fill: black;
-  font: 10px sans-serif;
-  text-anchor: end;
-}
-</style>
+<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 
-<svg class="chart"></svg>
-
-<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script> 
 <script>
-var width = 250, barHeight = 20;
-var x = d3.scale.linear()
-    .range([100, width]);
 
-var chart = d3.select("svg");
+   var options =  {
+        chart: {
+            type: 'column'
+        },
 
-d3.csv("/data/sample_medium.csv", function(data) {
-    // show a bar chart of average values grouped by county
-  var countyAvgValue2011 = d3.nest()
-  .key(function(d) { return d.county; })
-  .rollup(function(v) { return d3.mean(v, function(d) { return d.tiv_2011; }); })
-  .entries(data);
-  countyAvgValue2011.sort(function(a,b) { return b.values - a.values })
+        title: {
+            text: 'Florida Total Insurance Value (TIV) by County'
+        },
 
-  var max = d3.max(countyAvgValue2011, function(d) {
-      return d.values;
-  });
+        subtitle: {
+            text: 'Data input from CSV'
+        },
+        
+        xAxis: {
+            counties: []
+        },
 
-    x.domain([0, max])
-    chart.attr("height", barHeight * countyAvgValue2011.length);
+        series: [],
 
-  var bar = chart.selectAll("svg")
-      .data(countyAvgValue2011)
-    .enter().append("g")
-      .attr("transform", function(d, i) { return "translate(100," + i * barHeight + ")"; });
+        yAxis: {
+            title: {
+                text: 'TIV'
+            }
+        },
+    }
 
-  bar.append("text")
-    .attr('x', 0)
-    .attr('y', barHeight / 2)
-    .text(function(d) { return d.key; });
+    Highcharts.ajax({
+        url:  window.location.origin + '/data/sample_medium.csv',
+        dataType: 'text',
+        success: function(data) {
+            // Split the lines
+            var lines = data.split('\n');
+            
+            // convert csv line to JS object
+            var jsonObj = []
+            var headers = lines[0].split(',')
+            for(var i = 1; i < lines.length; i++) {
+                var data = lines[i].split(',');
+                var obj = {};
+                for(var j = 0; j < data.length; j++) {
+                    obj[headers[j].trim()] = data[j].trim();
+                }
+                jsonObj.push(obj);
+            }
+            JSON.stringify(jsonObj);
 
-  bar.append("rect")
-      .attr("width", function(d) { return x(d.values); })
-      .attr("height", barHeight - 1);
+            // group entries by county
+            var grouped = groupBy(jsonObj, el => el.county)
 
-  bar.append("text")
-      .attr("x", function(d) { return x(d.values) - 3; })
-      .attr("y", barHeight / 2)
-      .attr("dy", ".35em")
-      .text(function(d) { return d.values; });
-  });
+            var series = { 
+                data: [],
+                name: []
+            };
+
+            for (var [key, value] of grouped) {
+                options.xAxis.counties.push(key)
+                series.name = key
+                series.data.push(value)
+            }
+
+            options.series.push(series);
+
+            Highcharts.chart('container', options);
+        },
+        error: function (e, t) {
+            console.error(e, t);
+        }
+    });
+
+    function groupBy(list, keyGetter) {
+        const map = new Map();
+        list.forEach((item) => {
+            const key = keyGetter(item);
+            const collection = map.get(key);
+            if (!collection) {
+                map.set(key, [item]);
+            } else {
+                collection.push(item);
+            }
+        });
+        return map;
+    }
 
 </script>

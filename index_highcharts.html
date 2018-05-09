@@ -23,7 +23,7 @@
         },
         
         xAxis: {
-            counties: []
+            categories: []
         },
 
         series: [],
@@ -58,16 +58,29 @@
             // group entries by county
             var grouped = groupBy(jsonObj, el => el.county)
 
-            var series = { 
+            // turn map of counties by county name into map of county TIV_2011 averages by county name
+            var map = new Map();
+            grouped.forEach(function(value, key) {
+                var sum = value.map(item => parseFloat(item.tiv_2011)).reduce((prev, next) => prev+next);
+                var averageTiv = sum/value.length;
+                map.set(key, averageTiv);
+            });
+
+            // sort map to get highest values first
+            var m = Array.from(map);
+            m.sort(function(a,b) { return b[1] - a[1] })
+            var sortedMap = new Map(m);
+
+            var series = {
                 data: [],
                 name: []
             };
 
-            for (var [key, value] of grouped) {
-                options.xAxis.counties.push(key)
-                series.name = key
+            sortedMap.forEach(function(value, key) {
+                options.xAxis.categories.push(key)
+                series.name = 'TIV by county'
                 series.data.push(value)
-            }
+            });
 
             options.series.push(series);
 

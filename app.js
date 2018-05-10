@@ -3,31 +3,38 @@ var fs = require("fs");
 
 const hostname = '127.0.0.1';
 const port = 3000;
-var d3 = true;
 
 const server = http.createServer((req, res) => {
     if (req.url.includes('/data/')) {
         var fileName = req.url.slice(req.url.indexOf('data/'), req.url.length);
-        fs.readFile(fileName, function(err, data){
-            if (d3) {
-                res.writeHead(200, {'Content-Type': 'text/plain'});
-                res.write(data);
-                res.end();
-            } else {
-                res.writeHead(200, {'Content-Type': 'application/octet-stream'});
-                res.write(data);
-                res.end();
-            }
-          });
-    } else if (req.url.includes('highcharts')) {
+        var file = fs.createReadStream(fileName);
+        file.pipe(res);
+    } else if (req.url.includes('highcharts_bigdata')) {
         d3 = false;
-        fs.readFile("index_highcharts.html", function(err, data){
+        fs.readFile("highcharts_bigdata.html", function(err, data){
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+        });
+    } else if (req.url.includes('highcharts')) {
+        fs.readFile("highcharts.html", function(err, data){
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+        });
+    } else if (req.url.includes('d3_bigdata')) {
+        fs.readFile("d3_bigdata.html", function(err, data){
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+        });
+    }  else if (req.url.includes('d3')) {
+        fs.readFile("d3.html", function(err, data){
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.write(data);
             res.end();
         });
     } else {
-        d3 = true;
         fs.readFile("index.html", function(err, data){
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.write(data);

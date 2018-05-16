@@ -1,0 +1,13 @@
+{
+    "name": "chart-comparison",
+    "version": "1.0.0",
+    "description": "Sample chart comparison",
+    "scripts": {
+        "start": "node app.js"
+    },
+    "engines": {
+        "node": ">=6.11.3"
+    },
+    "author": "Amy Schlesener",
+    "license": "MIT"
+}

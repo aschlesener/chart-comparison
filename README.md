@@ -13,4 +13,4 @@ cd chart-comparison
 node app.js
 ```
 
-Navigate to http://127.0.0.1:3000 in your browser and you should see links to the various chart comparisons.
+Navigate to http://0.0.0.0:3000 in your browser and you should see links to the various chart comparisons.
